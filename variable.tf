@@ -13,7 +13,7 @@ variable "admin_username" {
   default     = "sysadmin"
 }
 
-variable "admin_username" {
+variable "admin_password" {
   description = "The admin username of the VM that will be deployed"
   default     = "Sp@rrow007"
 }

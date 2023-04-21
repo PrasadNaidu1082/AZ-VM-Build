@@ -4,10 +4,12 @@ resource "azurerm_resource_group" "pruefung" {
   location = "${var.location}"
 }
 
+
+
 resource "azurerm_virtual_network" "pruefungnetwork" {
   name                = "pruefung-network"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.pruefung.location
+  location            = "${var.location}"
   resource_group_name = azurerm_resource_group.pruefung.name
 }
 
@@ -27,17 +29,20 @@ resource "azurerm_network_interface" "pruefung" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.pruefungsubnet.id
     private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.pruefung-pub-ip.id
   }
 }
 
 resource "azurerm_linux_virtual_machine" "meinpruefung" {
 #  name                = "meinpruefung-machine"
-  name                = "${var.vm_hostname}${count.index}"
+  name                = "${var.vm_hostname}"
   resource_group_name = azurerm_resource_group.pruefung.name
   location            = azurerm_resource_group.pruefung.location
   size                = "Standard_F2"
   admin_username      = "${var.admin_username}"
   admin_password      = "${var.admin_password}"
+  disable_password_authentication = false
+  
   network_interface_ids = [
     azurerm_network_interface.pruefung.id,
   ]
@@ -57,5 +62,32 @@ resource "azurerm_linux_virtual_machine" "meinpruefung" {
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
     version   = "latest"
+  }
+ 
+}
+
+resource "azurerm_public_ip" "pruefung-pub-ip" {
+  name                         = "myPublicIP"
+  location                     = "${var.location}"
+  resource_group_name          =  azurerm_resource_group.pruefung.name
+  allocation_method   = "Dynamic"
+
+}
+
+resource "azurerm_network_security_group" "pruefung_nsg" {
+  name                = "myNetworkSecurityGroup"
+  location            = "${var.location}"
+  resource_group_name = azurerm_resource_group.pruefung.name
+
+  security_rule {
+    name                       = "SSH"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
   }
 }
