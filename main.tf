@@ -1,6 +1,7 @@
 resource "azurerm_resource_group" "pruefung" {
   name     = "pruefung-resources"
-  location = "South India"
+#  location = "South India"
+  location = "${var.location}"
 }
 
 resource "azurerm_virtual_network" "pruefungnetwork" {
@@ -30,19 +31,21 @@ resource "azurerm_network_interface" "pruefung" {
 }
 
 resource "azurerm_linux_virtual_machine" "meinpruefung" {
-  name                = "meinpruefung-machine"
+#  name                = "meinpruefung-machine"
+  name                = "${var.vm_hostname}${count.index}"
   resource_group_name = azurerm_resource_group.pruefung.name
   location            = azurerm_resource_group.pruefung.location
   size                = "Standard_F2"
-  admin_username      = "adminuser"
+  admin_username      = "${var.admin_username}"
+  admin_password      = "${var.admin_password}"
   network_interface_ids = [
     azurerm_network_interface.pruefung.id,
   ]
 
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
+#admin_ssh_key {
+#    username   = "adminuser"
+#    public_key = file("~/.ssh/id_rsa.pub")
+#  }
 
   os_disk {
     caching              = "ReadWrite"
